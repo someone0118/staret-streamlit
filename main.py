@@ -19,41 +19,51 @@ def plot_exchange_rates(exchange_rates, base_currency, x_size, y_size, x_min, x_
     currencies = list(exchange_rates.keys())
     rates = list(exchange_rates.values())
 
-    plt.figure(figsize=(x_size, y_size))  # ขนาดกราฟตามค่าที่ผู้ใช้เลือก
-    plt.bar(currencies, rates)
-    plt.title(f'Exchange Rates from {base_currency}')
-    plt.xlabel('Currency')
-    plt.ylabel('Exchange Rate')
-    plt.xticks(rotation=45)
-
-    # ตั้งค่าขอบเขตของแกน X และ Y
+    plt.figure(figsize=(x_size, y_size))
+    plt.bar(currencies, rates, color='royalblue')
+    plt.title(f'Exchange Rates from {base_currency}', fontsize=16)
+    plt.xlabel('Currency', fontsize=14)
+    plt.ylabel('Exchange Rate', fontsize=14)
+    plt.xticks(rotation=45, fontsize=12)
+    
     plt.xlim(x_min, x_max)
     plt.ylim(y_min, y_max)
-    
+    plt.grid(axis='y', linestyle='--', alpha=0.7)
+
     plt.tight_layout()
-    
     st.pyplot(plt)
 
 # ฟังก์ชันสำหรับแสดงตารางเปรียบเทียบค่าเงิน
 def show_currency_comparison(exchange_rates):
     df = pd.DataFrame(list(exchange_rates.items()), columns=['Currency', 'Exchange Rate'])
-    
-    # สร้างคอลัมน์เพื่อแสดงว่าเงินแข็งตัวหรืออ่อนตัว
     df['Trend'] = df['Exchange Rate'].apply(lambda x: 'Strong' if x > 1 else 'Weak')
     
-    # แยกข้อมูลออกเป็นค่าเงินแข็งตัวและอ่อนตัว
     strong_currencies = df[df['Trend'] == 'Strong']
     weak_currencies = df[df['Trend'] == 'Weak']
     
     st.subheader("Currency Strength Comparison")
     st.write("### Strong Currencies")
-    st.dataframe(strong_currencies)
+    st.dataframe(strong_currencies.style.highlight_max(axis=0))
 
     st.write("### Weak Currencies")
-    st.dataframe(weak_currencies)
+    st.dataframe(weak_currencies.style.highlight_min(axis=0))
 
 # ตั้งชื่อแอปพลิเคชัน
 st.title("Currency Comparison Tool")
+st.markdown("""
+    <style>
+    .title {
+        font-size: 24px;
+        font-weight: bold;
+        color: #333;
+    }
+    .subheader {
+        font-size: 20px;
+        font-weight: bold;
+        color: #666;
+    }
+    </style>
+""", unsafe_allow_html=True)
 
 # รับสกุลเงินจากผู้ใช้
 base_currency = st.selectbox("Select base currency:", options=["USD", "EUR", "THB", "JPY", "GBP", "AUD", "CAD"])
@@ -66,7 +76,7 @@ if exchange_rates:
     target_currency = st.selectbox("Select target currency to compare:", options=list(exchange_rates.keys()))
     
     # รับจำนวนเงินจากผู้ใช้
-    amount = st.number_input("Enter amount in {}:".format(base_currency), min_value=0.0, step=0.01)
+    amount = st.number_input(f"Enter amount in {base_currency}:", min_value=0.0, step=0.01)
 
     # แสดงผลลัพธ์
     if st.button("Compare"):
