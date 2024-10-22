@@ -66,10 +66,6 @@ st.markdown("""
         font-weight: bold;
         color: #555;
     }
-    .stButton {
-        background-color: #007BFF;
-        color: white;
-    }
     </style>
 """, unsafe_allow_html=True)
 
