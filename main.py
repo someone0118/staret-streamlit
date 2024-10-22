@@ -58,6 +58,7 @@ st.markdown("""<style>
     body {
         background-color: #f4f4f4;  /* สีเทาอ่อน */
         font-family: 'Arial', sans-serif;
+        background-image: url('https://www.transparenttextures.com/patterns/paper.png');  /* ลายพื้นหลัง */
     }
     .title {
         font-size: 22px;
