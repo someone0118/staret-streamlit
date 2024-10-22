@@ -48,10 +48,13 @@ def show_currency_comparison(exchange_rates):
     st.write("### Weak Currencies")
     st.dataframe(weak_currencies.style.highlight_min(axis=0, color='lightcoral'))
 
+# ฟังก์ชันสำหรับคำนวณภาษี
+def calculate_tax(amount, tax_rate):
+    return amount * (tax_rate / 100)
+
 # ตั้งชื่อแอปพลิเคชัน
 st.title("Currency Comparison Tool")
-st.markdown("""
-    <style>
+st.markdown("""<style>
     body {
         background-color: #f4f4f4;  /* สีเทาอ่อน */
         font-family: 'Arial', sans-serif;
@@ -82,11 +85,17 @@ if exchange_rates:
     # รับจำนวนเงินจากผู้ใช้
     amount = st.number_input(f"Enter amount in {base_currency}:", min_value=0.0, step=0.01)
 
+    # รับอัตราภาษีจากผู้ใช้
+    tax_rate = st.number_input("Enter tax rate (%):", min_value=0.0, step=0.01)
+
     # แสดงผลลัพธ์
     if st.button("Compare"):
         rate = exchange_rates[target_currency]
         converted_amount = amount * rate
-        st.success(f"{amount:.2f} {base_currency} = {converted_amount:.2f} {target_currency}")
+        tax_amount = calculate_tax(converted_amount, tax_rate)
+        total_amount = converted_amount + tax_amount
+        
+        st.success(f"{amount:.2f} {base_currency} = {converted_amount:.2f} {target_currency} (Tax: {tax_amount:.2f}, Total: {total_amount:.2f})")
 
     # ปรับขนาดกราฟจากผู้ใช้
     x_size = st.slider("Select width of graph:", min_value=5, max_value=20, value=10)
