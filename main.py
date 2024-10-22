@@ -20,7 +20,7 @@ def plot_exchange_rates(exchange_rates, base_currency, x_size, y_size, x_min, x_
     rates = list(exchange_rates.values())
 
     plt.figure(figsize=(x_size, y_size))
-    plt.bar(currencies, rates, color='royalblue')
+    plt.bar(currencies, rates, color='lightgray')
     plt.title(f'Exchange Rates from {base_currency}', fontsize=16)
     plt.xlabel('Currency', fontsize=14)
     plt.ylabel('Exchange Rate', fontsize=14)
@@ -28,7 +28,7 @@ def plot_exchange_rates(exchange_rates, base_currency, x_size, y_size, x_min, x_
     
     plt.xlim(x_min, x_max)
     plt.ylim(y_min, y_max)
-    plt.grid(axis='y', linestyle='--', alpha=0.7)
+    plt.grid(axis='y', linestyle='--', alpha=0.5)
 
     plt.tight_layout()
     st.pyplot(plt)
@@ -43,15 +43,19 @@ def show_currency_comparison(exchange_rates):
     
     st.subheader("Currency Strength Comparison")
     st.write("### Strong Currencies")
-    st.dataframe(strong_currencies.style.highlight_max(axis=0))
+    st.dataframe(strong_currencies.style.highlight_max(axis=0, color='lightgreen'))
 
     st.write("### Weak Currencies")
-    st.dataframe(weak_currencies.style.highlight_min(axis=0))
+    st.dataframe(weak_currencies.style.highlight_min(axis=0, color='lightcoral'))
 
 # ตั้งชื่อแอปพลิเคชัน
 st.title("Currency Comparison Tool")
 st.markdown("""
     <style>
+    body {
+        background-color: #eaeaea;  /* สีเทาอ่อน */
+        font-family: 'Arial', sans-serif;
+    }
     .title {
         font-size: 24px;
         font-weight: bold;
@@ -60,7 +64,11 @@ st.markdown("""
     .subheader {
         font-size: 20px;
         font-weight: bold;
-        color: #666;
+        color: #555;
+    }
+    .stButton {
+        background-color: #007BFF;
+        color: white;
     }
     </style>
 """, unsafe_allow_html=True)
