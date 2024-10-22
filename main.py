@@ -20,11 +20,11 @@ def plot_exchange_rates(exchange_rates, base_currency, x_size, y_size, x_min, x_
     rates = list(exchange_rates.values())
 
     plt.figure(figsize=(x_size, y_size))
-    plt.bar(currencies, rates, color='lightgray')
-    plt.title(f'Exchange Rates from {base_currency}', fontsize=16)
-    plt.xlabel('Currency', fontsize=14)
-    plt.ylabel('Exchange Rate', fontsize=14)
-    plt.xticks(rotation=45, fontsize=12)
+    plt.bar(currencies, rates, color='steelblue', edgecolor='black')
+    plt.title(f'Exchange Rates from {base_currency}', fontsize=14)
+    plt.xlabel('Currency', fontsize=12)
+    plt.ylabel('Exchange Rate', fontsize=12)
+    plt.xticks(rotation=45, fontsize=10)
     
     plt.xlim(x_min, x_max)
     plt.ylim(y_min, y_max)
@@ -53,16 +53,16 @@ st.title("Currency Comparison Tool")
 st.markdown("""
     <style>
     body {
-        background-color: #eaeaea;  /* สีเทาอ่อน */
+        background-color: #f4f4f4;  /* สีเทาอ่อน */
         font-family: 'Arial', sans-serif;
     }
     .title {
-        font-size: 24px;
+        font-size: 22px;
         font-weight: bold;
         color: #333;
     }
     .subheader {
-        font-size: 20px;
+        font-size: 18px;
         font-weight: bold;
         color: #555;
     }
