@@ -103,4 +103,3 @@ if exchange_rates:
 
     # แสดงตารางเปรียบเทียบค่าเงินแข็งตัวและอ่อนตัว
     show_currency_comparison(exchange_rates)
-api.exchangerate-api.com
