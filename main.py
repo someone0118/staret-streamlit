@@ -55,6 +55,12 @@ def show_currency_comparison(exchange_rates):
 def calculate_tax(amount, tax_rate):
     return amount * (tax_rate / 100)
 
+def set_graph_size():
+    """Function to get graph size from user input."""
+    x_size = st.slider("Select width of graph:", min_value=5, max_value=20, value=10)
+    y_size = st.slider("Select height of graph:", min_value=3, max_value=10, value=5)
+    return x_size, y_size
+
 st.title("Currency Comparison Tool")
 st.markdown("""<style>
     body {
@@ -99,8 +105,8 @@ if exchange_rates:
         
         st.success(f"{amount:.2f} {base_currency} = {converted_amount:.2f} {target_currency} (Tax: {tax_amount:.2f}, Total: {total_amount:.2f})")
 
-    x_size = st.slider("Select width of graph:", min_value=5, max_value=20, value=10)
-    y_size = st.slider("Select height of graph:", min_value=3, max_value=10, value=5)
+    # Call the function to set graph size
+    x_size, y_size = set_graph_size()
     graph_type = st.selectbox("Select graph type:", options=["Bar", "Line"])
     color_scheme = st.selectbox("Select color scheme:", options=["Default", "Alternative"])
 
