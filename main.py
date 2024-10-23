@@ -16,7 +16,7 @@ def get_exchange_rates(base_currency='USD'):
         return None
 
 # Function to plot exchange rates
-def plot_exchange_rates(exchange_rates, base_currency, x_size, y_size, x_min, x_max, y_min, y_max):
+def plot_exchange_rates(exchange_rates, base_currency, x_size, y_size):
     currencies = list(exchange_rates.keys())
     rates = list(exchange_rates.values())
 
@@ -27,8 +27,7 @@ def plot_exchange_rates(exchange_rates, base_currency, x_size, y_size, x_min, x_
     plt.ylabel('Exchange Rate', fontsize=12)
     plt.xticks(rotation=45, fontsize=10)
     
-    plt.xlim(x_min, x_max)
-    plt.ylim(y_min, y_max)
+    plt.ylim(0, max(rates) * 1.2)  # Set Y-axis limits dynamically
     plt.grid(axis='y', linestyle='--', alpha=0.5)
 
     plt.tight_layout()
@@ -83,15 +82,17 @@ base_currency = st.selectbox("Select base currency:", options=["USD", "EUR", "TH
 # Refresh rates every minute or on button press
 if 'exchange_rates' not in st.session_state or st.session_state.last_update < time.time() - 60:
     exchange_rates = get_exchange_rates(base_currency)
-    st.session_state.exchange_rates = exchange_rates
-    st.session_state.last_update = time.time()
+    if exchange_rates is not None:
+        st.session_state.exchange_rates = exchange_rates
+        st.session_state.last_update = time.time()
 else:
     exchange_rates = st.session_state.exchange_rates
 
 if st.button("Refresh Exchange Rates"):
     exchange_rates = get_exchange_rates(base_currency)
-    st.session_state.exchange_rates = exchange_rates
-    st.session_state.last_update = time.time()
+    if exchange_rates is not None:
+        st.session_state.exchange_rates = exchange_rates
+        st.session_state.last_update = time.time()
 
 if exchange_rates:
     # User selects target currencies
@@ -121,14 +122,8 @@ if exchange_rates:
     x_size = st.slider("Select width of graph:", min_value=5, max_value=20, value=10)
     y_size = st.slider("Select height of graph:", min_value=3, max_value=10, value=5)
 
-    # Input for adjusting the limits of the axes
-    x_min = st.number_input("Set X-axis min value:", value=0)
-    x_max = st.number_input("Set X-axis max value:", value=len(exchange_rates) - 1)
-    y_min = st.number_input("Set Y-axis min value:", value=0)
-    y_max = st.number_input("Set Y-axis max value:", value=int(max(exchange_rates.values()) * 1.2))
-
     # Show the exchange rates graph
-    plot_exchange_rates(exchange_rates, base_currency, x_size, y_size, x_min, x_max, y_min, y_max)
+    plot_exchange_rates(exchange_rates, base_currency, x_size, y_size)
 
     # Show the currency comparison table
     show_currency_comparison(exchange_rates)
