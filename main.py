@@ -49,6 +49,13 @@ def show_currency_comparison(exchange_rates):
     st.write("### Weak Currencies")
     st.dataframe(weak_currencies.style.highlight_min(axis=0, color='lightcoral'))
 
+# Function to show mixed currency rates
+def show_mixed_currency_rates(exchange_rates, selected_currencies):
+    mixed_rates = {currency: exchange_rates[currency] for currency in selected_currencies}
+    df = pd.DataFrame(list(mixed_rates.items()), columns=['Currency', 'Exchange Rate'])
+    st.subheader("Mixed Currency Rates")
+    st.dataframe(df)
+
 # Set up the application title
 st.title("Currency Comparison Tool")
 st.markdown("""
@@ -87,17 +94,28 @@ if st.button("Refresh Exchange Rates"):
     st.session_state.last_update = time.time()
 
 if exchange_rates:
-    # User selects target currency
-    target_currency = st.selectbox("Select target currency to compare:", options=list(exchange_rates.keys()))
+    # User selects target currencies
+    target_currencies = st.multiselect("Select target currencies to compare:", options=list(exchange_rates.keys()))
     
+    # Show mixed currency rates if selected
+    if target_currencies:
+        show_mixed_currency_rates(exchange_rates, target_currencies)
+
     # User inputs amount
     amount = st.number_input(f"Enter amount in {base_currency}:", min_value=0.0, step=0.01)
 
     # Show result on button press
     if st.button("Compare"):
-        rate = exchange_rates[target_currency]
-        converted_amount = amount * rate
-        st.success(f"{amount:.2f} {base_currency} = {converted_amount:.2f} {target_currency}")
+        if target_currencies:
+            results = []
+            for currency in target_currencies:
+                rate = exchange_rates[currency]
+                converted_amount = amount * rate
+                results.append(f"{amount:.2f} {base_currency} = {converted_amount:.2f} {currency}")
+
+            st.success("\n".join(results))
+        else:
+            st.warning("Please select at least one target currency to compare.")
 
     # Set graph size from user input
     x_size = st.slider("Select width of graph:", min_value=5, max_value=20, value=10)
