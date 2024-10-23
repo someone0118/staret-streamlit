@@ -57,8 +57,8 @@ def show_mixed_currency_rates(exchange_rates, selected_currencies):
     st.subheader("Mixed Currency Rates")
     st.dataframe(df)
 
-# Set up the application title
-st.title("Currency Comparison Tool")
+# Set up the application title with an icon
+st.title("Currency Comparison Tool 🏦")
 st.markdown("""
     <style>
     body {
@@ -90,7 +90,7 @@ if 'exchange_rates' not in st.session_state or st.session_state.last_update < ti
 else:
     exchange_rates = st.session_state.exchange_rates
 
-if st.button("Refresh Exchange Rates"):
+if st.button("Refresh Exchange Rates 🔄"):
     exchange_rates = get_exchange_rates(base_currency)
     if exchange_rates is not None:
         st.session_state.exchange_rates = exchange_rates
@@ -108,7 +108,7 @@ if exchange_rates:
     amount = st.number_input(f"Enter amount in {base_currency}:", min_value=0.0, step=0.01)
 
     # Show result on button press
-    if st.button("Compare"):
+    if st.button("Compare 💰"):
         if target_currencies:
             results = []
             for currency in target_currencies:
@@ -135,3 +135,4 @@ if exchange_rates:
 
     # Show the currency comparison table
     show_currency_comparison(exchange_rates)
+    
