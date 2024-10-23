@@ -17,6 +17,7 @@ def get_exchange_rates(base_currency='USD'):
 
 # Function to plot exchange rates
 def plot_exchange_rates(exchange_rates, base_currency, x_size, y_size):
+    plt.clf()  # Clear the current figure
     currencies = list(exchange_rates.keys())
     rates = list(exchange_rates.values())
 
