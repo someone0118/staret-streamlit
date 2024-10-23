@@ -2,6 +2,7 @@ import requests
 import streamlit as st
 import matplotlib.pyplot as plt
 import pandas as pd
+import time
 
 def get_exchange_rates(base_currency='USD'):
     url = f"https://api.exchangerate-api.com/v4/latest/{base_currency}"
@@ -14,7 +15,7 @@ def get_exchange_rates(base_currency='USD'):
         st.error("!!! Cannot retrieve exchange rates data !!!")
         return None
 
-# ฟังก์ชันสำหรับแสดงกราฟ
+# Function to plot exchange rates
 def plot_exchange_rates(exchange_rates, base_currency, x_size, y_size, x_min, x_max, y_min, y_max):
     currencies = list(exchange_rates.keys())
     rates = list(exchange_rates.values())
@@ -33,7 +34,7 @@ def plot_exchange_rates(exchange_rates, base_currency, x_size, y_size, x_min, x_
     plt.tight_layout()
     st.pyplot(plt)
 
-# ฟังก์ชันสำหรับแสดงตารางเปรียบเทียบค่าเงิน
+# Function to show currency comparison
 def show_currency_comparison(exchange_rates):
     df = pd.DataFrame(list(exchange_rates.items()), columns=['Currency', 'Exchange Rate'])
     df['Trend'] = df['Exchange Rate'].apply(lambda x: 'Strong' if x > 1 else 'Weak')
@@ -48,12 +49,12 @@ def show_currency_comparison(exchange_rates):
     st.write("### Weak Currencies")
     st.dataframe(weak_currencies.style.highlight_min(axis=0, color='lightcoral'))
 
-# ตั้งชื่อแอปพลิเคชัน
+# Set up the application title
 st.title("Currency Comparison Tool")
 st.markdown("""
     <style>
     body {
-        background-color: #f4f4f4;  /* สีเทาอ่อน */
+        background-color: #f4f4f4;  /* Light gray color */
         font-family: 'Arial', sans-serif;
     }
     .title {
@@ -69,37 +70,47 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# รับสกุลเงินจากผู้ใช้
+# User selects base currency
 base_currency = st.selectbox("Select base currency:", options=["USD", "EUR", "THB", "JPY", "GBP", "AUD", "CAD"])
 
-# ดึงข้อมูลอัตราแลกเปลี่ยน
-exchange_rates = get_exchange_rates(base_currency)
+# Refresh rates every minute or on button press
+if 'exchange_rates' not in st.session_state or st.session_state.last_update < time.time() - 60:
+    exchange_rates = get_exchange_rates(base_currency)
+    st.session_state.exchange_rates = exchange_rates
+    st.session_state.last_update = time.time()
+else:
+    exchange_rates = st.session_state.exchange_rates
+
+if st.button("Refresh Exchange Rates"):
+    exchange_rates = get_exchange_rates(base_currency)
+    st.session_state.exchange_rates = exchange_rates
+    st.session_state.last_update = time.time()
 
 if exchange_rates:
-    # ให้ผู้ใช้เลือกสกุลเงินที่ต้องการเปรียบเทียบ
+    # User selects target currency
     target_currency = st.selectbox("Select target currency to compare:", options=list(exchange_rates.keys()))
     
-    # รับจำนวนเงินจากผู้ใช้
+    # User inputs amount
     amount = st.number_input(f"Enter amount in {base_currency}:", min_value=0.0, step=0.01)
 
-    # แสดงผลลัพธ์
+    # Show result on button press
     if st.button("Compare"):
         rate = exchange_rates[target_currency]
         converted_amount = amount * rate
         st.success(f"{amount:.2f} {base_currency} = {converted_amount:.2f} {target_currency}")
 
-    # ปรับขนาดกราฟจากผู้ใช้
+    # Set graph size from user input
     x_size = st.slider("Select width of graph:", min_value=5, max_value=20, value=10)
     y_size = st.slider("Select height of graph:", min_value=3, max_value=10, value=5)
 
-    # กล่องข้อมูลสำหรับปรับย่านของแกน X และ Y
+    # Input for adjusting the limits of the axes
     x_min = st.number_input("Set X-axis min value:", value=0)
     x_max = st.number_input("Set X-axis max value:", value=len(exchange_rates) - 1)
     y_min = st.number_input("Set Y-axis min value:", value=0)
     y_max = st.number_input("Set Y-axis max value:", value=int(max(exchange_rates.values()) * 1.2))
 
-    # แสดงกราฟอัตราแลกเปลี่ยนทั้งหมด
+    # Show the exchange rates graph
     plot_exchange_rates(exchange_rates, base_currency, x_size, y_size, x_min, x_max, y_min, y_max)
 
-    # แสดงตารางเปรียบเทียบค่าเงินแข็งตัวและอ่อนตัว
+    # Show the currency comparison table
     show_currency_comparison(exchange_rates)
