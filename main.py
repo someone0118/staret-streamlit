@@ -2,7 +2,6 @@ import requests
 import streamlit as st
 import matplotlib.pyplot as plt
 import pandas as pd
-import time
 
 def get_exchange_rates(base_currency='USD'):
     url = f"https://api.exchangerate-api.com/v4/latest/{base_currency}"
@@ -15,29 +14,26 @@ def get_exchange_rates(base_currency='USD'):
         st.error("!!! Cannot retrieve exchange rates data !!!")
         return None
 
-def plot_exchange_rates(exchange_rates, base_currency, x_size, y_size, graph_type, color_scheme):
-    df = pd.DataFrame(list(exchange_rates.items()), columns=['Currency', 'Exchange Rate'])
-    df['Trend'] = df['Exchange Rate'].apply(lambda x: 'Strong' if x > 1 else 'Weak')
+# ฟังก์ชันสำหรับแสดงกราฟ
+def plot_exchange_rates(exchange_rates, base_currency, x_size, y_size, x_min, x_max, y_min, y_max):
+    currencies = list(exchange_rates.keys())
+    rates = list(exchange_rates.values())
 
     plt.figure(figsize=(x_size, y_size))
-    colors = ['lightgreen' if x == 'Strong' else 'lightcoral' for x in df['Trend']] if color_scheme == 'Default' else ['blue' if x == 'Strong' else 'red' for x in df['Trend']]
-    
-    if graph_type == 'Bar':
-        plt.bar(df['Currency'], df['Exchange Rate'], color=colors, edgecolor='black')
-    else:
-        plt.plot(df['Currency'], df['Exchange Rate'], marker='o', linestyle='-', color='blue')
-
+    plt.bar(currencies, rates, color='steelblue', edgecolor='black')
     plt.title(f'Exchange Rates from {base_currency}', fontsize=14)
     plt.xlabel('Currency', fontsize=12)
     plt.ylabel('Exchange Rate', fontsize=12)
     plt.xticks(rotation=45, fontsize=10)
     
-    plt.axhline(1, color='gray', linestyle='--')
+    plt.xlim(x_min, x_max)
+    plt.ylim(y_min, y_max)
     plt.grid(axis='y', linestyle='--', alpha=0.5)
 
     plt.tight_layout()
     st.pyplot(plt)
 
+# ฟังก์ชันสำหรับแสดงตารางเปรียบเทียบค่าเงิน
 def show_currency_comparison(exchange_rates):
     df = pd.DataFrame(list(exchange_rates.items()), columns=['Currency', 'Exchange Rate'])
     df['Trend'] = df['Exchange Rate'].apply(lambda x: 'Strong' if x > 1 else 'Weak')
@@ -52,21 +48,13 @@ def show_currency_comparison(exchange_rates):
     st.write("### Weak Currencies")
     st.dataframe(weak_currencies.style.highlight_min(axis=0, color='lightcoral'))
 
-def calculate_tax(amount, tax_rate):
-    return amount * (tax_rate / 100)
-
-def get_graph_size():
-    """Function to get graph size from user input."""
-    x_size = st.slider("Select width of graph:", min_value=5, max_value=20, value=10)
-    y_size = st.slider("Select height of graph:", min_value=3, max_value=10, value=5)
-    return x_size, y_size
-
+# ตั้งชื่อแอปพลิเคชัน
 st.title("Currency Comparison Tool")
-st.markdown("""<style>
+st.markdown("""
+    <style>
     body {
-        background-color: #f4f4f4;
+        background-color: #f4f4f4;  /* สีเทาอ่อน */
         font-family: 'Arial', sans-serif;
-        background-image: url('https://www.transparenttextures.com/patterns/paper.png');
     }
     .title {
         font-size: 22px;
@@ -81,34 +69,38 @@ st.markdown("""<style>
     </style>
 """, unsafe_allow_html=True)
 
+# รับสกุลเงินจากผู้ใช้
 base_currency = st.selectbox("Select base currency:", options=["USD", "EUR", "THB", "JPY", "GBP", "AUD", "CAD"])
 
-# Refresh rates every minute
-if 'exchange_rates' not in st.session_state or st.session_state.last_update < time.time() - 60:
-    exchange_rates = get_exchange_rates(base_currency)
-    st.session_state.exchange_rates = exchange_rates
-    st.session_state.last_update = time.time()
-else:
-    exchange_rates = st.session_state.exchange_rates
+# ดึงข้อมูลอัตราแลกเปลี่ยน
+exchange_rates = get_exchange_rates(base_currency)
 
 if exchange_rates:
+    # ให้ผู้ใช้เลือกสกุลเงินที่ต้องการเปรียบเทียบ
     target_currency = st.selectbox("Select target currency to compare:", options=list(exchange_rates.keys()))
     
+    # รับจำนวนเงินจากผู้ใช้
     amount = st.number_input(f"Enter amount in {base_currency}:", min_value=0.0, step=0.01)
-    tax_rate = st.number_input("Enter tax rate (%):", min_value=0.0, step=0.01)
 
+    # แสดงผลลัพธ์
     if st.button("Compare"):
         rate = exchange_rates[target_currency]
         converted_amount = amount * rate
-        tax_amount = calculate_tax(converted_amount, tax_rate)
-        total_amount = converted_amount + tax_amount
-        
-        st.success(f"{amount:.2f} {base_currency} = {converted_amount:.2f} {target_currency} (Tax: {tax_amount:.2f}, Total: {total_amount:.2f})")
+        st.success(f"{amount:.2f} {base_currency} = {converted_amount:.2f} {target_currency}")
 
-    # Get graph size
-    x_size, y_size = get_graph_size()
-    graph_type = st.selectbox("Select graph type:", options=["Bar", "Line"])
-    color_scheme = st.selectbox("Select color scheme:", options=["Default", "Alternative"])
+    # ปรับขนาดกราฟจากผู้ใช้
+    x_size = st.slider("Select width of graph:", min_value=5, max_value=20, value=10)
+    y_size = st.slider("Select height of graph:", min_value=3, max_value=10, value=5)
 
-    plot_exchange_rates(exchange_rates, base_currency, x_size, y_size, graph_type, color_scheme)
+    # กล่องข้อมูลสำหรับปรับย่านของแกน X และ Y
+    x_min = st.number_input("Set X-axis min value:", value=0)
+    x_max = st.number_input("Set X-axis max value:", value=len(exchange_rates) - 1)
+    y_min = st.number_input("Set Y-axis min value:", value=0)
+    y_max = st.number_input("Set Y-axis max value:", value=int(max(exchange_rates.values()) * 1.2))
+
+    # แสดงกราฟอัตราแลกเปลี่ยนทั้งหมด
+    plot_exchange_rates(exchange_rates, base_currency, x_size, y_size, x_min, x_max, y_min, y_max)
+
+    # แสดงตารางเปรียบเทียบค่าเงินแข็งตัวและอ่อนตัว
     show_currency_comparison(exchange_rates)
+api.exchangerate-api.com
