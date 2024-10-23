@@ -15,14 +15,18 @@ def get_exchange_rates(base_currency='USD'):
         st.error("!!! Cannot retrieve exchange rates data !!!")
         return None
 
-def plot_exchange_rates(exchange_rates, base_currency, x_size, y_size):
+def plot_exchange_rates(exchange_rates, base_currency, x_size, y_size, graph_type, color_scheme):
     df = pd.DataFrame(list(exchange_rates.items()), columns=['Currency', 'Exchange Rate'])
     df['Trend'] = df['Exchange Rate'].apply(lambda x: 'Strong' if x > 1 else 'Weak')
 
     plt.figure(figsize=(x_size, y_size))
-    colors = ['lightgreen' if x == 'Strong' else 'lightcoral' for x in df['Trend']]
+    colors = ['lightgreen' if x == 'Strong' else 'lightcoral' for x in df['Trend']] if color_scheme == 'Default' else ['blue' if x == 'Strong' else 'red' for x in df['Trend']]
     
-    plt.bar(df['Currency'], df['Exchange Rate'], color=colors, edgecolor='black')
+    if graph_type == 'Bar':
+        plt.bar(df['Currency'], df['Exchange Rate'], color=colors, edgecolor='black')
+    else:
+        plt.plot(df['Currency'], df['Exchange Rate'], marker='o', linestyle='-', color='blue')
+
     plt.title(f'Exchange Rates from {base_currency}', fontsize=14)
     plt.xlabel('Currency', fontsize=12)
     plt.ylabel('Exchange Rate', fontsize=12)
@@ -97,6 +101,8 @@ if exchange_rates:
 
     x_size = st.slider("Select width of graph:", min_value=5, max_value=20, value=10)
     y_size = st.slider("Select height of graph:", min_value=3, max_value=10, value=5)
+    graph_type = st.selectbox("Select graph type:", options=["Bar", "Line"])
+    color_scheme = st.selectbox("Select color scheme:", options=["Default", "Alternative"])
 
-    plot_exchange_rates(exchange_rates, base_currency, x_size, y_size)
+    plot_exchange_rates(exchange_rates, base_currency, x_size, y_size, graph_type, color_scheme)
     show_currency_comparison(exchange_rates)
