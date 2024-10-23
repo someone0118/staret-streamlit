@@ -15,8 +15,8 @@ def get_exchange_rates(base_currency='USD'):
         st.error("!!! Cannot retrieve exchange rates data !!!")
         return None
 
-# Function to plot exchange rates
-def plot_exchange_rates(exchange_rates, base_currency, x_size, y_size):
+# Function to plot exchange rates with dynamic limits
+def plot_exchange_rates(exchange_rates, base_currency, x_size, y_size, x_min, x_max, y_min, y_max):
     plt.clf()  # Clear the current figure
     currencies = list(exchange_rates.keys())
     rates = list(exchange_rates.values())
@@ -28,7 +28,8 @@ def plot_exchange_rates(exchange_rates, base_currency, x_size, y_size):
     plt.ylabel('Exchange Rate', fontsize=12)
     plt.xticks(rotation=45, fontsize=10)
     
-    plt.ylim(0, max(rates) * 1.2)  # Set Y-axis limits dynamically
+    plt.xlim(x_min, x_max)  # Set X-axis limits
+    plt.ylim(y_min, y_max)  # Set Y-axis limits
     plt.grid(axis='y', linestyle='--', alpha=0.5)
 
     plt.tight_layout()
@@ -123,8 +124,14 @@ if exchange_rates:
     x_size = st.slider("Select width of graph:", min_value=5, max_value=20, value=10)
     y_size = st.slider("Select height of graph:", min_value=3, max_value=10, value=5)
 
+    # Input for adjusting the limits of the axes
+    x_min = st.number_input("Set X-axis min value:", value=0, min_value=0, max_value=len(exchange_rates)-1)
+    x_max = st.number_input("Set X-axis max value:", value=len(exchange_rates)-1, min_value=0, max_value=len(exchange_rates)-1)
+    y_min = st.number_input("Set Y-axis min value:", value=0)
+    y_max = st.number_input("Set Y-axis max value:", value=int(max(exchange_rates.values()) * 1.2))
+
     # Show the exchange rates graph
-    plot_exchange_rates(exchange_rates, base_currency, x_size, y_size)
+    plot_exchange_rates(exchange_rates, base_currency, x_size, y_size, x_min, x_max, y_min, y_max)
 
     # Show the currency comparison table
     show_currency_comparison(exchange_rates)
