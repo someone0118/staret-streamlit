@@ -2,6 +2,7 @@ import requests
 import streamlit as st
 import matplotlib.pyplot as plt
 import pandas as pd
+import time
 
 def get_exchange_rates(base_currency='USD'):
     url = f"https://api.exchangerate-api.com/v4/latest/{base_currency}"
@@ -14,7 +15,6 @@ def get_exchange_rates(base_currency='USD'):
         st.error("!!! Cannot retrieve exchange rates data !!!")
         return None
 
-# ฟังก์ชันสำหรับแสดงกราฟ
 def plot_exchange_rates(exchange_rates, base_currency, x_size, y_size):
     df = pd.DataFrame(list(exchange_rates.items()), columns=['Currency', 'Exchange Rate'])
     df['Trend'] = df['Exchange Rate'].apply(lambda x: 'Strong' if x > 1 else 'Weak')
@@ -28,13 +28,12 @@ def plot_exchange_rates(exchange_rates, base_currency, x_size, y_size):
     plt.ylabel('Exchange Rate', fontsize=12)
     plt.xticks(rotation=45, fontsize=10)
     
-    plt.axhline(1, color='gray', linestyle='--')  # เส้นแสดงค่า 1
+    plt.axhline(1, color='gray', linestyle='--')
     plt.grid(axis='y', linestyle='--', alpha=0.5)
 
     plt.tight_layout()
     st.pyplot(plt)
 
-# ฟังก์ชันสำหรับแสดงตารางเปรียบเทียบค่าเงิน
 def show_currency_comparison(exchange_rates):
     df = pd.DataFrame(list(exchange_rates.items()), columns=['Currency', 'Exchange Rate'])
     df['Trend'] = df['Exchange Rate'].apply(lambda x: 'Strong' if x > 1 else 'Weak')
@@ -49,17 +48,15 @@ def show_currency_comparison(exchange_rates):
     st.write("### Weak Currencies")
     st.dataframe(weak_currencies.style.highlight_min(axis=0, color='lightcoral'))
 
-# ฟังก์ชันสำหรับคำนวณภาษี
 def calculate_tax(amount, tax_rate):
     return amount * (tax_rate / 100)
 
-# ตั้งชื่อแอปพลิเคชัน
 st.title("Currency Comparison Tool")
 st.markdown("""<style>
     body {
-        background-color: #f4f4f4;  /* สีเทาอ่อน */
+        background-color: #f4f4f4;
         font-family: 'Arial', sans-serif;
-        background-image: url('https://www.transparenttextures.com/patterns/paper.png');  /* ลายพื้นหลัง */
+        background-image: url('https://www.transparenttextures.com/patterns/paper.png');
     }
     .title {
         font-size: 22px;
@@ -74,23 +71,22 @@ st.markdown("""<style>
     </style>
 """, unsafe_allow_html=True)
 
-# รับสกุลเงินจากผู้ใช้
 base_currency = st.selectbox("Select base currency:", options=["USD", "EUR", "THB", "JPY", "GBP", "AUD", "CAD"])
 
-# ดึงข้อมูลอัตราแลกเปลี่ยน
-exchange_rates = get_exchange_rates(base_currency)
+# Refresh rates every minute
+if 'exchange_rates' not in st.session_state or st.session_state.last_update < time.time() - 60:
+    exchange_rates = get_exchange_rates(base_currency)
+    st.session_state.exchange_rates = exchange_rates
+    st.session_state.last_update = time.time()
+else:
+    exchange_rates = st.session_state.exchange_rates
 
 if exchange_rates:
-    # ให้ผู้ใช้เลือกสกุลเงินที่ต้องการเปรียบเทียบ
     target_currency = st.selectbox("Select target currency to compare:", options=list(exchange_rates.keys()))
     
-    # รับจำนวนเงินจากผู้ใช้
     amount = st.number_input(f"Enter amount in {base_currency}:", min_value=0.0, step=0.01)
-
-    # รับอัตราภาษีจากผู้ใช้
     tax_rate = st.number_input("Enter tax rate (%):", min_value=0.0, step=0.01)
 
-    # แสดงผลลัพธ์
     if st.button("Compare"):
         rate = exchange_rates[target_currency]
         converted_amount = amount * rate
@@ -99,12 +95,8 @@ if exchange_rates:
         
         st.success(f"{amount:.2f} {base_currency} = {converted_amount:.2f} {target_currency} (Tax: {tax_amount:.2f}, Total: {total_amount:.2f})")
 
-    # ปรับขนาดกราฟจากผู้ใช้
     x_size = st.slider("Select width of graph:", min_value=5, max_value=20, value=10)
     y_size = st.slider("Select height of graph:", min_value=3, max_value=10, value=5)
 
-    # แสดงกราฟอัตราแลกเปลี่ยนทั้งหมด
     plot_exchange_rates(exchange_rates, base_currency, x_size, y_size)
-
-    # แสดงตารางเปรียบเทียบค่าเงินแข็งตัวและอ่อนตัว
     show_currency_comparison(exchange_rates)
